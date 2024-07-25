@@ -1,0 +1,3 @@
+import com.hyoseok.samplecleanarchitecture.configureComposeAndroid
+
+configureComposeAndroid()
