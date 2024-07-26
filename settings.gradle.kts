@@ -23,3 +23,8 @@ dependencyResolutionManagement {
 rootProject.name = "SampleCleanArchitecture"
 include(":app")
 include(":feature:main")
+include(":core:model")
+include(":core:usecase")
+include(":core:repository")
+include(":core:designsystem")
+include(":data:api")
