@@ -14,7 +14,7 @@ android {
 }
 
 configureHiltAndroid()
-configurePagingAndroid()
+//configurePagingAndroid()
 
 dependencies {
     implementation(project(":core:repository"))

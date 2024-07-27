@@ -44,6 +44,7 @@ ossLicenses = "17.0.1"
 ossLicensesPlugin = "0.10.6"
 junit = "1.1.5"
 material = "1.9.0"
+lifecycleRuntimeKtx = "2.8.3"
 
 [libraries]
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
@@ -117,6 +118,8 @@ androidx-datastore = { group = "androidx.datastore", name = "datastore-preferenc
 oss-licenses-plugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "ossLicensesPlugin" }
 junit = { group = "androidx.test.ext", name = "junit", version.ref = "junit" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 
 [bundles]
 
