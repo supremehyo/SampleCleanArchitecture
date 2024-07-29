@@ -19,5 +19,5 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewModelCompose)
     implementation(libs.kotlinx.immutable)
     androidTestImplementation(libs.hilt.android.testing)
-
+    implementation(libs.kotlinx.serialization.json)
 }
