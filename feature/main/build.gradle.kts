@@ -11,7 +11,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity.compose)
@@ -20,4 +19,6 @@ dependencies {
     implementation(libs.kotlinx.immutable)
     androidTestImplementation(libs.hilt.android.testing)
     implementation(libs.kotlinx.serialization.json)
+
+    implementation(project(mapOf("path" to ":feature:camera")))
 }
