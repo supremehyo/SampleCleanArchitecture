@@ -18,6 +18,9 @@ dependencies {
 
     implementation(libs.bundles.camera)
 
+
+
+
     testImplementation(libs.junit4)
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
