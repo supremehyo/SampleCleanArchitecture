@@ -1,7 +1,9 @@
 package com.hyoseok.compose_camera
 
+import android.Manifest
 import android.content.ContentValues
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
@@ -20,6 +22,7 @@ import androidx.camera.video.Recorder
 import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.camera.view.PreviewView
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.google.common.util.concurrent.ListenableFuture
@@ -70,7 +73,6 @@ internal class CameraXImpl : CameraX {
 
     }
 
-    @OptIn(ExperimentalCamera2Interop::class)
     fun initializeVideo(){
         val qualitySelector = QualitySelector.fromOrderedList(
             listOf(Quality.UHD, Quality.FHD, Quality.HD, Quality.SD),
@@ -117,7 +119,7 @@ internal class CameraXImpl : CameraX {
     }
 
     override fun takePicture(
-        showMessage: (String) -> Unit
+        result: (ImageCapture.OutputFileResults) -> Unit
     ) {
         val path =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/cameraX")
@@ -133,13 +135,12 @@ internal class CameraXImpl : CameraX {
                 ContextCompat.getMainExecutor(context),
                 object : ImageCapture.OnImageSavedCallback {
                     override fun onError(error: ImageCaptureException) {
+                        Log.e("tackPictureError" , error.message.toString())
                         error.printStackTrace()
                     }
 
                     override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                        showMessage(
-                            "Capture Success!! Image Saved at  \n [${Environment.getExternalStorageDirectory().absolutePath}/${Environment.DIRECTORY_PICTURES}/cameraX]"
-                        )
+                        result.invoke(outputFileResults)
                     }
                 })
         }
@@ -149,6 +150,20 @@ internal class CameraXImpl : CameraX {
     override fun startRecordVideo() {
         Log.e("record", "start")
         try {
+            if (ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.RECORD_AUDIO
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return
+            }
             recording = videoCapture.output
                 .prepareRecording(context, mediaStoreOutput)
                 .withAudioEnabled()

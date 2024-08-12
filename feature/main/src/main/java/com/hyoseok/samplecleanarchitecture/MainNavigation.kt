@@ -1,5 +1,6 @@
 package com.hyoseok.samplecleanarchitecture
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -9,6 +10,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.hyoseok.home.HomeScreen
 import com.hyoseok.samplecleanarchitecture.camera.CameraScreen
 
 sealed class  MainPath(val path : String){
@@ -24,6 +26,10 @@ fun MainNavigation(
     val navController = rememberNavController()
     val screenState by mainViewModel.screenState.collectAsStateWithLifecycle()
 
+    HandleBackButtonAction{
+        Log.e("test" , "back")
+    }
+
     LaunchedEffect(screenState) {
         navController.navigateSingleTopTo(screenState)
     }
@@ -33,12 +39,20 @@ fun MainNavigation(
         startDestination = MainPath.Home.path
     ) {
         composable(MainPath.Home.path) {
-
+            HomeScreen{
+                if(it == "CAMERA") mainViewModel.updateScreenState(MainPath.Camera.path)
+                else mainViewModel.updateScreenState(MainPath.Gallery.path)
+            }
         }
         composable(MainPath.Camera.path) {
-            CameraScreen{
+            CameraScreen(
+                backPress = {
+                    mainViewModel.updateScreenState(MainPath.Home.path)
+                },
+                showSnackBar = {
 
-            }
+                }
+            )
         }
         composable(MainPath.Gallery.path) {
 

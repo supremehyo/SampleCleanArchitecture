@@ -10,12 +10,5 @@ import com.hyoseok.samplecleanarchitecture.camera.CameraScreen
 
 @Composable
 fun MainScreen(){
-    Column {
-        VideoTrimView(
-            modifier = Modifier.fillMaxWidth(),
-            onRangeChange = { start, end ->
-
-            }
-        )
-    }
+    MainNavigation()
 }

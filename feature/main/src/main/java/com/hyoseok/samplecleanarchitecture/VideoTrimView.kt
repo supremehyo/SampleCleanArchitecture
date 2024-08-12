@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
+//TODO 다른 모듈로 이동 필요
 @Composable
 fun VideoTrimView(
     modifier: Modifier = Modifier,

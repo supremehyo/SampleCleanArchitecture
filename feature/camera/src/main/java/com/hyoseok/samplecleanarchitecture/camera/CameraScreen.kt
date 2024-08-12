@@ -1,5 +1,10 @@
 package com.hyoseok.samplecleanarchitecture.camera
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
@@ -29,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.hyoseok.compose_camera.CameraXFactory
 import com.hyoseok.compose_camera.RecordingInfo
@@ -37,7 +43,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun CameraScreen(showSnackBar: (String) -> Unit) {
+fun CameraScreen(
+    showSnackBar: (String) -> Unit,
+    backPress : ()->Unit
+) {
     val flashOn = remember { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraScope = rememberCoroutineScope()
@@ -47,16 +56,50 @@ fun CameraScreen(showSnackBar: (String) -> Unit) {
     val facing = cameraX.getFacingState().collectAsState()
     val recordingState = cameraX.getRecordingState().collectAsState()
     val recordingInfo = cameraX.getRecordingInfo().collectAsState(RecordingInfo(0,0,0.0))
-    LaunchedEffect(Unit) {
-        cameraX.initialize(context = context)
-        previewView.value = cameraX.getPreviewView()
+    val cameraInitialized = remember { mutableStateOf(false) }
+
+    val cameraPermission = Manifest.permission.CAMERA
+    val permissionStatus = remember {
+        ContextCompat.checkSelfPermission(context, cameraPermission)
     }
-    DisposableEffect(facing.value) {
-        cameraScope.launch(Dispatchers.Main) {
-            cameraX.startCamera(lifecycleOwner = lifecycleOwner)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            cameraX.initialize(context = context)
+            previewView.value = cameraX.getPreviewView()
+            cameraInitialized.value = true
+        } else {
+            showSnackBar("Camera permission is required to use this feature.")
         }
-        onDispose {
-            cameraX.unBindCamera()
+    }
+
+    BackHandler{
+        backPress.invoke()
+    }
+
+    if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
+        LaunchedEffect(Unit) {
+            if (!cameraInitialized.value) {
+                cameraX.initialize(context = context)
+                previewView.value = cameraX.getPreviewView()
+                cameraInitialized.value = true
+            }
+        }
+    } else {
+        LaunchedEffect(Unit) {
+            permissionLauncher.launch(cameraPermission)
+        }
+    }
+
+    if (cameraInitialized.value) {
+        DisposableEffect(facing.value) {
+            cameraScope.launch(Dispatchers.Main) {
+                cameraX.startCamera(lifecycleOwner = lifecycleOwner)
+            }
+            onDispose {
+                cameraX.unBindCamera()
+            }
         }
     }
     Box(Modifier.fillMaxSize()) {
@@ -72,8 +115,7 @@ fun CameraScreen(showSnackBar: (String) -> Unit) {
                 Modifier
                     .fillMaxHeight()
                     .weight(1f)) {
-                Text("${(recordingInfo.value.duration / 1000000000.0) } second", fontSize = 18.sp, color = Color.White)
-                Text("${recordingInfo.value.sizeByte / 1000000.0} Mbyte", fontSize = 18.sp, color = Color.White)
+                Text("${(recordingInfo.value.duration / 1000000000.0)}", fontSize = 18.sp, color = Color.White)
             }
             Row(
                 Modifier
@@ -176,22 +218,16 @@ fun CameraScreen(showSnackBar: (String) -> Unit) {
                     modifier = Modifier
                         .padding(10.dp),
                     onClick = {
-                        cameraX.takePicture(showSnackBar)
+                        cameraX.takePicture{ result->
+                            //TODO 촬영을 확정할지 확인하는 화면으로 이동
+                            
+                        }
                     }
                 ) {
                     Text("takePicture")
                 }
             }
         }
-
-    }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun CameraPreview() {
-    CameraScreen {
 
     }
 }

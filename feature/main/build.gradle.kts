@@ -21,4 +21,5 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     implementation(project(mapOf("path" to ":feature:camera")))
+    implementation(project(mapOf("path" to ":feature:home")))
 }

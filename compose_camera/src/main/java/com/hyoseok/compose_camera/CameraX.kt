@@ -1,6 +1,7 @@
 package com.hyoseok.compose_camera
 
 import android.content.Context
+import androidx.camera.core.ImageCapture
 import androidx.camera.view.PreviewView
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.flow.SharedFlow
@@ -10,7 +11,7 @@ interface CameraX {
 
     fun initialize(context: Context)
     fun startCamera(lifecycleOwner: LifecycleOwner)
-    fun takePicture(showMessage: (String)
+    fun takePicture(result: (ImageCapture.OutputFileResults)
     -> Unit)
     fun startRecordVideo()
     fun stopRecordVideo()
