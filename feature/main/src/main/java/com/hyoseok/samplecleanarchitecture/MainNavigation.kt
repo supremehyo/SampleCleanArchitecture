@@ -30,27 +30,30 @@ fun MainNavigation(
         Log.e("test" , "back")
     }
 
-    LaunchedEffect(screenState) {
-        navController.navigateSingleTopTo(screenState)
-    }
-
     NavHost(
         navController = navController,
         startDestination = MainPath.Home.path
     ) {
         composable(MainPath.Home.path) {
             HomeScreen{
-                if(it == "CAMERA") mainViewModel.updateScreenState(MainPath.Camera.path)
-                else mainViewModel.updateScreenState(MainPath.Gallery.path)
+                if(it == "CAMERA") {
+                    navController.navigateSingleTopTo(MainPath.Camera.path)
+                }
+                else {
+                    navController.navigateSingleTopTo(MainPath.Gallery.path)
+                }
             }
         }
         composable(MainPath.Camera.path) {
             CameraScreen(
                 backPress = {
-                    mainViewModel.updateScreenState(MainPath.Home.path)
+                    navController.popBackStack()
                 },
                 showSnackBar = {
 
+                },
+                completePicture = {
+                    //TODO PictureScreen 로 이동하면서 데이터 전달
                 }
             )
         }
