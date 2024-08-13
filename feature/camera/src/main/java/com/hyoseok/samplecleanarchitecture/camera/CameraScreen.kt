@@ -6,6 +6,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -45,7 +46,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun CameraScreen(
     showSnackBar: (String) -> Unit,
-    backPress : ()->Unit
+    backPress : ()->Unit,
+    completePicture : (ImageCapture.OutputFileResults) -> Unit
 ) {
     val flashOn = remember { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -219,8 +221,7 @@ fun CameraScreen(
                         .padding(10.dp),
                     onClick = {
                         cameraX.takePicture{ result->
-                            //TODO 촬영을 확정할지 확인하는 화면으로 이동
-                            
+                            completePicture.invoke(result)
                         }
                     }
                 ) {
