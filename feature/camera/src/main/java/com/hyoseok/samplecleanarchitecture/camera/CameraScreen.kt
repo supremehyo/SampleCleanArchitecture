@@ -47,7 +47,7 @@ import kotlinx.coroutines.launch
 fun CameraScreen(
     showSnackBar: (String) -> Unit,
     backPress : ()->Unit,
-    completePicture : (ImageCapture.OutputFileResults) -> Unit
+    completePictureUri : (String) -> Unit
 ) {
     val flashOn = remember { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -221,7 +221,9 @@ fun CameraScreen(
                         .padding(10.dp),
                     onClick = {
                         cameraX.takePicture{ result->
-                            completePicture.invoke(result)
+                            result.savedUri?.path?.let {
+                                completePictureUri.invoke(it)
+                            }
                         }
                     }
                 ) {
