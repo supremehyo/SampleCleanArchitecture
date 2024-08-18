@@ -28,8 +28,6 @@ fun MainNavigation(
     mainViewModel: MainViewModel = hiltViewModel()
 ){
     val navController = rememberNavController()
-    val screenState by mainViewModel.screenState.collectAsStateWithLifecycle()
-
     HandleBackButtonAction{
         Log.e("test" , "back")
     }
@@ -76,7 +74,15 @@ fun MainNavigation(
             backstackEntry ->
             val result = backstackEntry.arguments?.getString("data")
             result?.let {
-                PictureScreen(it)
+                PictureScreen(
+                    savedUri = it,
+                    retry = {
+                        navController.popBackStack()
+                    },
+                    complete = {
+                        navController.popBackStack(MainPath.Home.path , false)
+                    }
+                )
             }
         }
     }

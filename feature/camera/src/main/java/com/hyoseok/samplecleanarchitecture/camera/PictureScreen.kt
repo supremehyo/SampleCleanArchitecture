@@ -7,6 +7,7 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Log
 import androidx.camera.core.ImageCapture
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -34,13 +35,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import com.hyoseok.samplecleanarchitecture.core.designsystem.component.TextButtonComponent
 import com.hyoseok.samplecleanarchitecture.core.designsystem.theme.LocalTypography
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
 @Composable
-fun PictureScreen(savedUri: String) {
+fun PictureScreen(
+    savedUri: String,
+    retry : ()->Unit,
+    complete : ()-> Unit
+) {
     val context = LocalContext.current
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
 
@@ -51,7 +57,7 @@ fun PictureScreen(savedUri: String) {
 
     bitmap?.let {
         Column(
-            modifier = Modifier.background(Color.Black),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center
         ) {
             Image(bitmap = it.asImageBitmap(), contentDescription = null)
@@ -60,19 +66,72 @@ fun PictureScreen(savedUri: String) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Text(text = "재촬영" , style = LocalTypography.current.displaySmallR)
-                Text(text = "확인" , style = LocalTypography.current.displaySmallR)
+                TextButtonComponent(
+                    name = "재촬영",
+                    backColor = Color.White,
+                    textColor = Color.Black
+                ) {
+                    //재촬영시 지금 사진이 필요없어서 삭제하고 retry 를 호출
+                    deleteCurrentPicture(
+                        context = context,
+                        savedUri = savedUri,
+                        onDeleteComplete = {
+                            retry.invoke()
+                        }
+                    )
+                }
+                TextButtonComponent(
+                    name = "확인",
+                    backColor = Color.White,
+                    textColor = Color.Black
+                ) {
+                    complete.invoke()
+                }
             }
         }
     } ?: run {
-        Box (
+        Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
-        ){
+        ) {
             Text(text = "이미지를 불러오지 못했습니다.")
         }
     }
 }
+
+fun deleteCurrentPicture(context: Context, savedUri: String, onDeleteComplete: () -> Unit) {
+    val file = File(savedUri)
+    if (file.exists()) {
+        // 삭제 전, 파일의 Content Uri를 가져옵니다.
+        val contentUri = getImageContentUri(context, file)
+
+        // 파일을 시스템에서 삭제합니다.
+        val fileDeleted = file.delete()
+
+        // 미디어 스토어에서도 삭제합니다.
+        contentUri?.let { uri ->
+            val rowsDeleted = context.contentResolver.delete(uri, null, null)
+            if (rowsDeleted > 0 || fileDeleted) {
+                onDeleteComplete()
+            } else {
+                //TODO 토스트 메세지로 변경 예정
+                // 삭제에 실패한 경우, 로그 또는 에러 처리
+                println("파일 삭제에 실패했습니다.")
+            }
+        } ?: run {
+            if (fileDeleted) {
+                onDeleteComplete()
+            } else {
+                // 삭제에 실패한 경우, 로그 또는 에러 처리
+                println("파일 삭제에 실패했습니다.")
+            }
+        }
+    } else {
+        // 파일이 존재하지 않는 경우
+        println("파일이 존재하지 않습니다.")
+    }
+}
+
 
 suspend fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? {
     return withContext(Dispatchers.IO) {
@@ -117,5 +176,5 @@ fun getImageContentUri(context: Context, imageFile: File): Uri? {
 @Preview(showBackground = true)
 @Composable
 fun HomePreview() {
-    PictureScreen("dd")
+
 }
