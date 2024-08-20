@@ -10,6 +10,7 @@ androidxComposeNavigation = "2.8.0-beta02"
 androidxComposeMaterial3 = "1.1.0"
 androidxActivity = "1.7.2"
 cameraCamera2 = "1.4.0-alpha02"
+coilCompose = "2.6.0"
 hilt = "2.46.1"
 hiltNavigationCompose = "1.0.0"
 
@@ -53,6 +54,7 @@ android-desugarJdkLibs = { group = "com.android.tools", name = "desugar_jdk_libs
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCamera2" }
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraCamera2" }
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraCamera2" }
+coil-compose-v260 = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
