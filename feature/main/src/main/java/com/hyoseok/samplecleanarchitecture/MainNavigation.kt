@@ -3,15 +3,14 @@ package com.hyoseok.samplecleanarchitecture
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.hyoseok.gallery.GalleryImageScreen
 import com.hyoseok.home.HomeScreen
 import com.hyoseok.samplecleanarchitecture.camera.CameraScreen
 import com.hyoseok.samplecleanarchitecture.camera.PictureScreen
@@ -30,6 +29,8 @@ fun MainNavigation(
     val navController = rememberNavController()
     HandleBackButtonAction{
         Log.e("test" , "back")
+
+
     }
 
     NavHost(
@@ -65,7 +66,7 @@ fun MainNavigation(
             )
         }
         composable(MainPath.Gallery.path) {
-
+            GalleryImageScreen()
         }
         composable(
             route = "${MainPath.PictureScreen.path}/{data}",

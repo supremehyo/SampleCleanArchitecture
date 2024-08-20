@@ -20,6 +20,7 @@ dependencies {
     androidTestImplementation(libs.hilt.android.testing)
     implementation(libs.kotlinx.serialization.json)
 
+    implementation(project(mapOf("path" to ":feature:gallery")))
     implementation(project(mapOf("path" to ":feature:camera")))
     implementation(project(mapOf("path" to ":feature:home")))
 }
