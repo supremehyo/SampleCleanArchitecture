@@ -6,5 +6,5 @@
 
 개발 목적
 - 클린 아키텍쳐 + 멀티모듈로 구성된 프로젝트
-- MVI + Compose
-- Compose camera + ffmpeg 개발 -> 라이브러리화 예정
+- MVVM + Compose
+- Compose camera + ffmpeg(이미지 위 텍스트, 영상 자막) -> 라이브러리화 예정
