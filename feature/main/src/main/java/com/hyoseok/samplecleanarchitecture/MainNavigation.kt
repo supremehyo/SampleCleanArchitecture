@@ -1,8 +1,9 @@
-package com.hyoseok.samplecleanarchitecture
-
+import com.hyoseok.samplecleanarchitecture.HandleBackButtonAction
+import com.hyoseok.samplecleanarchitecture.MainViewModel
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -14,6 +15,9 @@ import com.hyoseok.gallery.GalleryImageScreen
 import com.hyoseok.home.HomeScreen
 import com.hyoseok.samplecleanarchitecture.camera.CameraScreen
 import com.hyoseok.samplecleanarchitecture.camera.PictureScreen
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 sealed class  MainPath(val path : String){
     object Home : MainPath("HOME")
@@ -24,8 +28,10 @@ sealed class  MainPath(val path : String){
 
 @Composable
 fun MainNavigation(
-    mainViewModel: MainViewModel = hiltViewModel()
+    ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    coroutineScope: CoroutineScope = rememberCoroutineScope()
 ){
+
     val navController = rememberNavController()
     HandleBackButtonAction{
         Log.e("test" , "back")
@@ -66,7 +72,13 @@ fun MainNavigation(
             )
         }
         composable(MainPath.Gallery.path) {
-            GalleryImageScreen()
+            GalleryImageScreen(
+                ioDispatcher = ioDispatcher,
+                coroutineScope = coroutineScope,
+                onCancel = {
+                    navController.popBackStack()
+                }
+            )
         }
         composable(
             route = "${MainPath.PictureScreen.path}/{data}",

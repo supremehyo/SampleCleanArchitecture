@@ -59,7 +59,8 @@ fun PictureScreen(
                 TextButtonComponent(
                     name = "재촬영",
                     backColor = Color.White,
-                    textColor = Color.Black
+                    textColor = Color.Black,
+                    modifier = Modifier
                 ) {
                     //재촬영시 지금 사진이 필요없어서 삭제하고 retry 를 호출
                     deleteCurrentPicture(
@@ -73,7 +74,8 @@ fun PictureScreen(
                 TextButtonComponent(
                     name = "확인",
                     backColor = Color.White,
-                    textColor = Color.Black
+                    textColor = Color.Black,
+                    modifier = Modifier
                 ) {
                     complete.invoke()
                 }

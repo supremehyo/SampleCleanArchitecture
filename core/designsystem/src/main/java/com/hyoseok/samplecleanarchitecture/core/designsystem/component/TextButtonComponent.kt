@@ -19,10 +19,11 @@ fun TextButtonComponent(
     name: String,
     backColor: Color,
     textColor: Color,
+    modifier: Modifier,
     onClick: () -> Unit
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .background(backColor)
             .clickable {
@@ -31,8 +32,8 @@ fun TextButtonComponent(
     ) {
         Text(
             text = name,
-            style = LocalTypography.current.displaySmallR.copy(textColor),
-            modifier = Modifier.padding(4.dp)
+            style = LocalTypography.current.titleLargeB.copy(textColor),
+            modifier = modifier.padding(4.dp)
         )
     }
 }
@@ -40,11 +41,5 @@ fun TextButtonComponent(
 @Preview(showBackground = true)
 @Composable
 fun HomePreview() {
-    TextButtonComponent(
-        name = "테스트",
-        backColor = Color.Black,
-        textColor = Color.White
-    ) {
 
-    }
 }

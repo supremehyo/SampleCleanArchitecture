@@ -21,6 +21,8 @@ dependencies {
     implementation(project(":core:usecase"))
     implementation(project(":core:model"))
     implementation(project(":core:designsystem"))
+    implementation(project(":common"))
+
 
     val libs = project.extensions.libs
     implementation(libs.findLibrary("hilt.navigation.compose").get())
