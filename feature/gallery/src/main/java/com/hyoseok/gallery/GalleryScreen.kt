@@ -1,11 +1,19 @@
 package com.hyoseok.gallery
 
+import CropView
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,19 +28,22 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.hyoseok.samplecleanarchitecture.core.designsystem.component.TextButtonComponent
 import com.hyoseok.samplecleanarchitecture.core.designsystem.theme.LocalTypography
 import com.hyoseok.samplecleanarchitecture.core.model.UiState
+import feature.gallery.R
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -48,6 +59,7 @@ fun GalleryImageScreen(
     coroutineScope: CoroutineScope
 ) {
     var loadComplete by remember { mutableStateOf(false) }
+    var cropActive by remember { mutableStateOf(false) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -97,7 +109,9 @@ fun GalleryImageScreen(
 
     if (loadComplete) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceAround
         ) {
@@ -108,14 +122,40 @@ fun GalleryImageScreen(
                 textColor = Color.White,
                 modifier = Modifier.align(Alignment.End)
             ) {
-
+                cropActive = true
             }
-            AsyncImage(
-                model = selectedImageUri,
-                contentDescription = null,
-                modifier = Modifier.size(400.dp),
-                contentScale = ContentScale.Crop
-            )
+            if (cropActive) {
+                selectedImageUri?.let {
+                    uriToImageBitmap(LocalContext.current, it)?.let {
+                        Box(modifier = Modifier.size(400.dp)){
+                            CropView(
+                                imageBitmap = it,
+                                cropStrokeColor = Color.Black,
+                                cropStrokeWidth = 4.dp,
+                                onCrop = { bitmap ->
+                                    //  croppedBitmap = bitmap
+                                }
+                            )
+                        }
+
+                    }
+                }
+            } else {
+                selectedImageUri?.let {
+                    uriToImageBitmap(LocalContext.current, it)?.let {
+                        Image(modifier = Modifier.size(400.dp),bitmap = it, contentDescription = "", contentScale = ContentScale.Fit)
+                    }
+                }
+                /*
+                AsyncImage(
+                    model = selectedImageUri,
+                    contentDescription = null,
+                    modifier = Modifier.size(400.dp),
+                    contentScale = ContentScale.Inside,
+                )
+
+                 */
+            }
             Column {
                 Text(
                     text = "선택하여 편집 이미지를 변경 할 수 있습니다.",
@@ -141,5 +181,24 @@ fun GalleryImageScreen(
                 }
             }
         }
+    }
+}
+
+
+fun uriToImageBitmap(context: Context, uri: Uri): ImageBitmap? {
+    return try {
+        val bitmap: Bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
+            ImageDecoder.decodeBitmap(source)
+        } else {
+            @Suppress("DEPRECATION")
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                BitmapFactory.decodeStream(inputStream)
+            } ?: throw IllegalArgumentException("Unable to open InputStream from URI")
+        }
+        bitmap.asImageBitmap()
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
 }

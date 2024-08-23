@@ -1,5 +1,6 @@
 package com.hyoseok.samplecleanarchitecture
 
+import MainNavigation
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
