@@ -1,6 +1,5 @@
 package com.hyoseok.gallery
 
-import CropView
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -138,7 +137,7 @@ fun GalleryImageScreen(
                 selectedImageUri?.let {
                     uriToImageBitmap(LocalContext.current, it)?.let {
                         Box(modifier = Modifier.size(400.dp)) {
-                            CropView(
+                            com.choidev.cropview.CropView(
                                 imageBitmap = it,
                                 cropStrokeColor = Color.Black,
                                 cropStrokeWidth = 4.dp,
@@ -148,7 +147,6 @@ fun GalleryImageScreen(
                                     cropActive = false
                                 },
                                 onRequestCrop = isCropRequested,
-                                key = ""
                             )
                         }
                     }

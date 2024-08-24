@@ -11,6 +11,7 @@ androidxComposeMaterial3 = "1.1.0"
 androidxActivity = "1.7.2"
 cameraCamera2 = "1.4.0-alpha02"
 coilCompose = "2.6.0"
+composeCropview = "v1.0.5"
 hilt = "2.46.1"
 hiltNavigationCompose = "1.0.0"
 
@@ -55,6 +56,7 @@ androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.r
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraCamera2" }
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraCamera2" }
 coil-compose-v260 = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+compose-cropview = { module = "com.github.supremehyo:Compose-CropView", version.ref = "composeCropview" }
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
