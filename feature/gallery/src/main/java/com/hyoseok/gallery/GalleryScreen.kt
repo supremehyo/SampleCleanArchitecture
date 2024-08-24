@@ -11,6 +11,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,25 +19,31 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
@@ -58,6 +65,9 @@ fun GalleryImageScreen(
     ioDispatcher: CoroutineDispatcher,
     coroutineScope: CoroutineScope
 ) {
+    var selectKey = ""
+    var croppedBitmapList by remember { mutableStateOf(mutableStateMapOf<String,ImageBitmap>()) }
+    var isCropRequested by remember { mutableStateOf(false) }
     var loadComplete by remember { mutableStateOf(false) }
     var cropActive by remember { mutableStateOf(false) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -127,59 +137,83 @@ fun GalleryImageScreen(
             if (cropActive) {
                 selectedImageUri?.let {
                     uriToImageBitmap(LocalContext.current, it)?.let {
-                        Box(modifier = Modifier.size(400.dp)){
+                        Box(modifier = Modifier.size(400.dp)) {
                             CropView(
                                 imageBitmap = it,
                                 cropStrokeColor = Color.Black,
                                 cropStrokeWidth = 4.dp,
-                                onCrop = { bitmap ->
-                                    //  croppedBitmap = bitmap
-                                }
+                                onCrop = { bitmap , complete, key,->
+                                    croppedBitmapList.put(key,bitmap)
+                                    isCropRequested = complete
+                                    cropActive = false
+                                },
+                                onRequestCrop = isCropRequested,
+                                key = ""
                             )
                         }
-
                     }
+                }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.Black)
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                        .height(30.dp)
+                        .clickable {
+                            isCropRequested = true
+                        },
+                    contentAlignment = Alignment.Center,
+                ){
+                    Text(text = "Crop", style = TextStyle(color = Color.White))
                 }
             } else {
-                selectedImageUri?.let {
-                    uriToImageBitmap(LocalContext.current, it)?.let {
-                        Image(modifier = Modifier.size(400.dp),bitmap = it, contentDescription = "", contentScale = ContentScale.Fit)
+                if (croppedBitmapList.isNotEmpty()){
+                    Image(
+                        modifier = Modifier.size(400.dp),
+                        bitmap = croppedBitmapList.get(selectKey)!!,
+                        contentDescription = "",
+                        contentScale = ContentScale.Fit
+                    )
+                }else{
+                    selectedImageUri?.let {
+                        uriToImageBitmap(LocalContext.current, it)?.let {
+                            Image(
+                                modifier = Modifier.size(400.dp),
+                                bitmap = it,
+                                contentDescription = "",
+                                contentScale = ContentScale.Fit
+                            )
+                        }
                     }
                 }
-                /*
-                AsyncImage(
-                    model = selectedImageUri,
-                    contentDescription = null,
-                    modifier = Modifier.size(400.dp),
-                    contentScale = ContentScale.Inside,
-                )
+                Column {
+                    Text(
+                        text = "선택하여 편집 이미지를 변경 할 수 있습니다.",
+                        modifier = Modifier.padding(start = 8.dp, bottom = 2.dp)
+                    )
+                    LazyColumn(
+                        horizontalAlignment = Alignment.Start,
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(8.dp)
+                    ) {
+                        itemsIndexed(selectedImageUris) {index, uri ->
+                            AsyncImage(
+                                model = uri,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .clickable {
+                                        selectedImageUri = uri
+                                        selectKey = index.toString()
+                                    },
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+                }
+            }
 
-                 */
-            }
-            Column {
-                Text(
-                    text = "선택하여 편집 이미지를 변경 할 수 있습니다.",
-                    modifier = Modifier.padding(start = 8.dp, bottom = 2.dp)
-                )
-                LazyColumn(
-                    horizontalAlignment = Alignment.Start,
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(8.dp)
-                ) {
-                    items(selectedImageUris) { uri ->
-                        AsyncImage(
-                            model = uri,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(50.dp)
-                                .clickable {
-                                    selectedImageUri = uri
-                                },
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                }
-            }
         }
     }
 }

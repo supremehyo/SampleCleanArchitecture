@@ -15,6 +15,7 @@ class GalleryViewModel @Inject constructor() : ViewModel() {
     private val _galleryEventFlow = MutableSharedFlow<GalleryEvent>()
     val galleryEventFlow = _galleryEventFlow.asSharedFlow()
 
+
     private fun postGalleryEvent(event : GalleryEvent){
         viewModelScope.launch {
             _galleryEventFlow.emit(event)
