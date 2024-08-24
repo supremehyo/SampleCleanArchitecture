@@ -16,11 +16,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -65,10 +68,11 @@ fun GalleryImageScreen(
     coroutineScope: CoroutineScope
 ) {
     var selectKey = ""
-    var croppedBitmapList by remember { mutableStateOf(mutableStateMapOf<String,ImageBitmap>()) }
+    var croppedBitmapList by remember { mutableStateOf(mutableStateMapOf<String, ImageBitmap>()) }
     var isCropRequested by remember { mutableStateOf(false) }
     var loadComplete by remember { mutableStateOf(false) }
     var cropActive by remember { mutableStateOf(false) }
+    var onTextActive by remember { mutableStateOf(false) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -117,102 +121,216 @@ fun GalleryImageScreen(
     }
 
     if (loadComplete) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceAround
-        ) {
-            Text(text = "사진 편집", style = LocalTypography.current.headlineMediumB)
-            TextButtonComponent(
-                name = "자르기",
-                backColor = Color.Black,
-                textColor = Color.White,
-                modifier = Modifier.align(Alignment.End)
-            ) {
-                cropActive = true
+        GalleryScreenContent(
+            selectedImageUri = selectedImageUri,
+            selectedImageUris = selectedImageUris,
+            cropActive = cropActive,
+            onTextActive = onTextActive,
+            croppedBitmapList = croppedBitmapList,
+            selectKey = selectKey,
+            isCropRequested = isCropRequested,
+            onCropActiveChange = { cropActive = it },
+            onTextActiveChange = { onTextActive = it },
+            onCropRequestChange = { isCropRequested = it },
+            onImageSelect = { uri, key ->
+                selectedImageUri = uri
+                selectKey = key
+            },
+            onCropComplete = { bitmap, key ->
+                croppedBitmapList[key] = bitmap
+                cropActive = false
             }
-            if (cropActive) {
-                selectedImageUri?.let {
-                    uriToImageBitmap(LocalContext.current, it)?.let {
-                        Box(modifier = Modifier.size(400.dp)) {
-                            com.choidev.cropview.CropView(
-                                imageBitmap = it,
-                                cropStrokeColor = Color.Black,
-                                cropStrokeWidth = 4.dp,
-                                onCrop = { bitmap , complete, key,->
-                                    croppedBitmapList.put(key,bitmap)
-                                    isCropRequested = complete
-                                    cropActive = false
-                                },
-                                onRequestCrop = isCropRequested,
-                            )
-                        }
-                    }
-                }
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.Black)
-                        .fillMaxWidth()
-                        .padding(12.dp)
-                        .height(30.dp)
-                        .clickable {
-                            isCropRequested = true
-                        },
-                    contentAlignment = Alignment.Center,
-                ){
-                    Text(text = "Crop", style = TextStyle(color = Color.White))
-                }
-            } else {
-                if (croppedBitmapList.isNotEmpty()){
-                    Image(
-                        modifier = Modifier.size(400.dp),
-                        bitmap = croppedBitmapList.get(selectKey)!!,
-                        contentDescription = "",
-                        contentScale = ContentScale.Fit
-                    )
-                }else{
-                    selectedImageUri?.let {
-                        uriToImageBitmap(LocalContext.current, it)?.let {
-                            Image(
-                                modifier = Modifier.size(400.dp),
-                                bitmap = it,
-                                contentDescription = "",
-                                contentScale = ContentScale.Fit
-                            )
-                        }
-                    }
-                }
-                Column {
-                    Text(
-                        text = "선택하여 편집 이미지를 변경 할 수 있습니다.",
-                        modifier = Modifier.padding(start = 8.dp, bottom = 2.dp)
-                    )
-                    LazyColumn(
-                        horizontalAlignment = Alignment.Start,
-                        modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(8.dp)
-                    ) {
-                        itemsIndexed(selectedImageUris) {index, uri ->
-                            AsyncImage(
-                                model = uri,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(50.dp)
-                                    .clickable {
-                                        selectedImageUri = uri
-                                        selectKey = index.toString()
-                                    },
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-                    }
-                }
-            }
+        )
+    }
+}
 
+@Composable
+fun GalleryScreenContent(
+    selectedImageUri: Uri?,
+    selectedImageUris: List<Uri>,
+    cropActive: Boolean,
+    onTextActive: Boolean,
+    croppedBitmapList: Map<String, ImageBitmap>,
+    selectKey: String,
+    isCropRequested: Boolean,
+    onCropActiveChange: (Boolean) -> Unit,
+    onTextActiveChange: (Boolean) -> Unit,
+    onCropRequestChange: (Boolean) -> Unit,
+    onImageSelect: (Uri, String) -> Unit,
+    onCropComplete: (ImageBitmap, String) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceAround
+    ) {
+        Text(text = "사진 편집", style = LocalTypography.current.headlineMediumB)
+
+        ActionButtons(
+            cropActive = cropActive,
+            onTextActive = onTextActive,
+            onCropActiveChange = onCropActiveChange,
+            onTextActiveChange = onTextActiveChange
+        )
+
+        when {
+            onTextActive -> TextEditingView(selectedImageUri)
+            cropActive -> CropViewContent(
+                selectedImageUri = selectedImageUri,
+                isCropRequested = isCropRequested,
+                onCropRequestChange = onCropRequestChange,
+                onCropComplete = onCropComplete
+            )
+            else -> ImagePreview(
+                selectedImageUri = selectedImageUri,
+                selectedImageUris = selectedImageUris,
+                croppedBitmapList = croppedBitmapList,
+                selectKey = selectKey,
+                onImageSelect = onImageSelect
+            )
         }
+    }
+}
+
+@Composable
+fun ActionButtons(
+    cropActive: Boolean,
+    onTextActive: Boolean,
+    onCropActiveChange: (Boolean) -> Unit,
+    onTextActiveChange: (Boolean) -> Unit
+) {
+    Row() {
+        TextButtonComponent(
+            name = "자르기",
+            backColor = Color.Black,
+            textColor = Color.White,
+            modifier = Modifier
+        ) {
+            if (!onTextActive) onCropActiveChange(true)
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        TextButtonComponent(
+            name = "텍스트 입력",
+            backColor = Color.Black,
+            textColor = Color.White,
+            modifier = Modifier
+        ) {
+            if (!cropActive) onTextActiveChange(true)
+        }
+    }
+}
+
+@Composable
+fun TextEditingView(selectedImageUri: Uri?) {
+    selectedImageUri?.let { uri ->
+        uriToImageBitmap(LocalContext.current, uri)?.let { imageBitmap ->
+            Box(modifier = Modifier.size(400.dp)) {
+                ImageOnTextScreen(
+                    modifier = Modifier,
+                    imageBitmap = imageBitmap,
+                    onText = { /* 텍스트 입력 로직 */ }
+                )
+            }
+        }
+    }
+    CompleteButton { /* 완료 버튼 클릭 로직 */ }
+}
+
+@Composable
+fun CropViewContent(
+    selectedImageUri: Uri?,
+    isCropRequested: Boolean,
+    onCropRequestChange: (Boolean) -> Unit,
+    onCropComplete: (ImageBitmap, String) -> Unit
+) {
+    selectedImageUri?.let { uri ->
+        uriToImageBitmap(LocalContext.current, uri)?.let { imageBitmap ->
+            Box(modifier = Modifier.size(400.dp)) {
+                com.choidev.cropview.CropView(
+                    imageBitmap = imageBitmap,
+                    cropStrokeColor = Color.Black,
+                    cropStrokeWidth = 4.dp,
+                    onCrop = { bitmap, complete, key ->
+                        onCropComplete(bitmap, key)
+                        onCropRequestChange(false)
+                    },
+                    onRequestCrop = isCropRequested,
+                )
+            }
+        }
+    }
+    CompleteButton { onCropRequestChange(true) }
+}
+
+@Composable
+fun ImagePreview(
+    selectedImageUri: Uri?,
+    selectedImageUris: List<Uri>,
+    croppedBitmapList: Map<String, ImageBitmap>,
+    selectKey: String,
+    onImageSelect: (Uri, String) -> Unit
+) {
+    if (croppedBitmapList.isNotEmpty()) {
+        Image(
+            modifier = Modifier.size(400.dp),
+            bitmap = croppedBitmapList[selectKey]!!,
+            contentDescription = "",
+            contentScale = ContentScale.Fit
+        )
+    } else {
+        selectedImageUri?.let { uri ->
+            uriToImageBitmap(LocalContext.current, uri)?.let { imageBitmap ->
+                Image(
+                    modifier = Modifier.size(400.dp),
+                    bitmap = imageBitmap,
+                    contentDescription = "",
+                    contentScale = ContentScale.Fit
+                )
+            }
+        }
+    }
+
+    Column {
+        Text(
+            text = "선택하여 편집 이미지를 변경 할 수 있습니다.",
+            modifier = Modifier.padding(start = 8.dp, bottom = 2.dp)
+        )
+        LazyColumn(
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(8.dp)
+        ) {
+            itemsIndexed(selectedImageUris) { index, uri ->
+                AsyncImage(
+                    model = uri,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clickable {
+                            onImageSelect(uri, index.toString())
+                        },
+                    contentScale = ContentScale.Crop
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CompleteButton(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color.Black)
+            .fillMaxWidth()
+            .padding(12.dp)
+            .height(30.dp)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = "완료", style = TextStyle(color = Color.White))
     }
 }
 
