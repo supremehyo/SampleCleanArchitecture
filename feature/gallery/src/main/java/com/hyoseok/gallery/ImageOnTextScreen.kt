@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -81,11 +83,9 @@ fun ImageOnTextScreen(
                             textFieldData.offset.y.toInt()
                         )
                     }
-                    .background(Color.White)
+                    .background(Color.Transparent)
                     .pointerInput(Unit) {
                         detectDragGestures(
-                            onDragEnd = { },
-                            onDragCancel = { },
                             onDrag = { change, dragAmount ->
                                 change.consume()
                                 textFields = textFields
@@ -110,7 +110,27 @@ fun ImageOnTextScreen(
                             }
                     }
                     .padding(8.dp)
+                    .then(
+                        if (textFieldData.isFocused) {
+                            Modifier.drawUnderline()
+                        } else {
+                            Modifier
+                        }
+                    )
             )
         }
     }
 }
+
+fun Modifier.drawUnderline(): Modifier = this.then(
+    Modifier.drawBehind {
+        val strokeWidth = 1.dp.toPx()
+        val y = size.height - strokeWidth / 2
+        drawLine(
+            color = Color.Black,
+            start = Offset(0f, y),
+            end = Offset(size.width, y),
+            strokeWidth = strokeWidth
+        )
+    }
+)
